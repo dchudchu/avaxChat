@@ -52,6 +52,34 @@ contract AvaxChat {
         return userList[pubkey].name;
     }
 
+            //Identifier for different conversations
+    function _getChatCode(address pubkey1, address pubkey2) internal pure returns(bytes32){
+        if(pubkey1 < pubkey2){
+            return keccak256(abi.encodePacked(pubkey1, pubkey2));
+        } else {
+        return keccak256(abi.encodePacked(pubkey2, pubkey1));
+        }
+    }
+
+    //Send messages
+    function sendMessage (address friend_key, string calldata _msg) external {
+        require(checkUser(msg.sender), "Create an account before sending messages");
+        require(checkUser(friend_key), "Friend's address is not registered");
+        require(checkFriend(msg.sender, friend_key), "ERROR: Not friends");
+
+        bytes32 chatCode = _getChatCode(msg.sender, friend_key);
+        message memory newMsg = message(msg.sender, block.timestamp, _msg);
+
+        allMessages[chatCode].push(newMsg);
+    }
+
+    //Read Messages
+
+    function readMessage (address friend_key) external view returns(message[] memory) {
+        bytes32 chatCode = _getChatCode(msg.sender, friend_key);
+        return allMessages[chatCode];
+    }
+
     //Add Friends
     function addFriend(address friendkey, string calldata name) external {
         require(checkUser(friendkey), "Friend address is not regisetered");
@@ -85,34 +113,6 @@ contract AvaxChat {
 
     function getFriendList() external view returns(friend[] memory) {
         return userList[msg.sender].friendList;
-    }
-
-    //Identifier for different conversations
-    function _getChatCode(address pubkey1, address pubkey2) internal pure returns(bytes32){
-        if(pubkey1 < pubkey2){
-            return keccak256(abi.encodePacked(pubkey1, pubkey2));
-        } else {
-        return keccak256(abi.encodePacked(pubkey2, pubkey1));
-        }
-    }
-
-    //Send messages
-    function sendMessage (address friend_key, string calldata _msg) external {
-        require(checkUser(msg.sender), "Create an account before sending messages");
-        require(checkUser(friend_key), "Friend's address is not registered");
-        require(checkFriend(msg.sender, friend_key), "ERROR: Not friends");
-
-        bytes32 chatCode = _getChatCode(msg.sender, friend_key);
-        message memory newMsg = message(msg.sender, block.timestamp, _msg);
-
-        allMessages[chatCode].push(newMsg);
-    }
-
-    //Read Messages
-
-    function readMessage (address friend_key) external view returns(message[] memory) {
-        bytes32 chatCode = _getChatCode(msg.sender, friend_key);
-        return allMessages[chatCode];
     }
 
     function getAllAppUsers() public view returns(allUsers[] memory) {
