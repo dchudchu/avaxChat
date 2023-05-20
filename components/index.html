@@ -1,25 +1,48 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>My First Webpage</title>
-  <style>
-    body {
-      display: flex;
-      justify-content: center;
-      align-items: flex-start;
-      height: 100vh;
-      margin: 0;
-      font-family: 'Raleway', sans-serif;
-    }
-    
-    h1 {
-      margin-top: 0;
-    }
-  </style>
-
-  <link href="https://fonts.googleapis.com/css2?family=Raleway:wght@400;700&display=swap" rel="stylesheet"> 
+  <title>My dApp</title>
+  <script src="https://cdn.ethers.io/lib/ethers-5.0.esm.min.js" type="module"></script>
 </head>
 <body>
-  <h1>WAVEFIRE</h1>
+  <button id="connect">Connect Wallet</button>
+  <input id="message" type="text">
+  <button id="send">Send Message</button>
+
+  <script type="module">
+    let provider;
+    let signer;
+    let contract;
+
+    const contractAddress = 'Your_Contract_Address'; // Replace this with your contract address
+    const contractABI = [...] // Replace this with your contract's ABI
+
+    document.getElementById('connect').addEventListener('click', async () => {
+      if (window.ethereum) {
+        try {
+          await window.ethereum.request({ method: 'eth_requestAccounts' });
+          provider = new ethers.providers.Web3Provider(window.ethereum);
+          signer = provider.getSigner();
+          contract = new ethers.Contract(contractAddress, contractABI, signer);
+        } catch (error) {
+          console.error("User denied account access")
+        }
+      } else {
+        console.log('Non-Ethereum browser detected. Please consider installing MetaMask');
+      }
+    });
+
+    document.getElementById('send').addEventListener('click', async () => {
+      const message = document.getElementById('message').value;
+      if (contract) {
+        try {
+          const transaction = await contract.sendMessage(message);
+          await transaction.wait();
+        } catch (error) {
+          console.error(error);
+        }
+      }
+    });
+  </script>
 </body>
 </html>
